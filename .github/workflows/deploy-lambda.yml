@@ -15,9 +15,9 @@ jobs:
 
       - name: Download and unzip precompiled psycopg2 for AWS Lambda
         run: |
-          curl -L -o psycopg2.zip "https://github.com/jkehler/awslambda-psycopg2/releases/download/v2.9.5/psycopg2-binary-layer.zip"
-          mkdir -p psycopg2_package
-          unzip -o psycopg2.zip -d psycopg2_package
+          wget -O psycopg2.zip https://github.com/jkehler/awslambda-psycopg2/releases/download/v2.9.5/psycopg2-binary-layer.zip
+          unzip psycopg2.zip -d psycopg2_package
+
 
       - name: Package Lambda code
         run: |
