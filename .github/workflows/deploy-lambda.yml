@@ -1,4 +1,4 @@
-name: Deploy Lambda to AWS
+name: Build and Deploy Lambda with psycopg2
 
 on:
   push:
@@ -6,25 +6,22 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download and unzip precompiled psycopg2 for AWS Lambda
+      - name: Build deployment package in Amazon Linux 2 container
         run: |
-          wget -O psycopg2.zip https://github.com/jkehler/awslambda-psycopg2/releases/download/v2.9.5/psycopg2-binary-layer.zip
-          unzip psycopg2.zip -d psycopg2_package
-
-
-      - name: Package Lambda code
-        run: |
-          mkdir package
-          cp lambda_handler.py package/
-          cp -r psycopg2_package/python/* package/
-          cd package && zip -r ../lambda.zip .
+          docker run --rm -v "$PWD":/app -w /app amazonlinux:2 bash -c "
+            yum install -y python3 python3-pip zip gcc postgresql-devel python3-devel &&
+            pip3 install psycopg2-binary -t python/ &&
+            cp lambda_handler.py python/ &&
+            cd python && zip -r9 ../lambda.zip . &&
+            echo '✅ lambda.zip creado correctamente en el contenedor Amazon Linux 2'
+          "
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -33,13 +30,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy code to Lambda
+      - name: Deploy code to AWS Lambda
         run: |
           aws lambda update-function-code \
             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://lambda.zip
 
-      - name: Esperar a que se complete la actualización
+      - name: Wait for deployment to complete
         run: sleep 20
 
       - name: Update Lambda environment variables

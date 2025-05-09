@@ -1,0 +1,5 @@
+venv/
+python/
+lambda_package.zip
+lambda.zip
+__pycache__/
