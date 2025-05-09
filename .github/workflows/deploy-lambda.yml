@@ -13,14 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build Lambda package in Lambda-compatible container
+      - name: Build Lambda package in Amazon Linux 2 with Python 3.10
         run: |
-          docker run --rm -v "$PWD":/var/task public.ecr.aws/lambda/python:3.10-build bash -c "
-            yum install -y gcc postgresql-devel python3-devel zip &&
-            pip3 install psycopg2-binary -t ./python &&
-            cp lambda_handler.py ./python &&
-            cd python && zip -r9 /var/task/lambda.zip . &&
-            echo '✅ lambda.zip creado correctamente en entorno Lambda real'
+          docker run --rm -v "$PWD":/app -w /app amazonlinux:2 bash -c "
+            amazon-linux-extras enable python3.8 &&
+            yum clean metadata &&
+            yum install -y python3.8 gcc postgresql-devel python3-devel zip &&
+            ln -sf /usr/bin/python3.8 /usr/bin/python3 &&
+            ln -sf /usr/bin/pip3 /usr/bin/pip &&
+            pip install psycopg2-binary -t python/ &&
+            cp lambda_handler.py python/ &&
+            cd python && zip -r9 /app/lambda.zip . &&
+            echo '✅ lambda.zip generado con Python 3.8 compatible con AWS Lambda'
           "
           
       - name: Configure AWS credentials
