@@ -30,11 +30,14 @@ jobs:
             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
             --zip-file fileb://lambda.zip
 
-      - name: Update environment variables
+      - name: Wait for update to complete
+        run: sleep 20
+
+      - name: Update Lambda configuration with psycopg2 Layer and env vars
         run: |
           aws lambda update-function-configuration \
             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            ----layers arn:aws:lambda:us-east-1:877085696533:layer:psycopg2-aws-lambda:2 \
+            --layers arn:aws:lambda:us-east-1:877085696533:layer:psycopg2-aws-lambda:2 \
             --environment "Variables={
               DB_HOST='${{ secrets.DB_HOST }}',
               DB_PORT='${{ secrets.DB_PORT }}',
