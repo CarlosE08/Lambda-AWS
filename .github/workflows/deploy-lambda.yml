@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies and zip
         run: |
           pip install -r requirements.txt -t python/
-          cp lambda_function.py python/
+          cp lambda_handler.py python/
           cd python && zip -r ../lambda.zip .
 
       - name: Configure AWS credentials
@@ -39,7 +39,7 @@ jobs:
 
       - name: Esperar a que se complete la actualización
         run: sleep 20
-        
+
       - name: Update Lambda environment variables
         run: |
           aws lambda update-function-configuration \
